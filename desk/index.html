@@ -1,0 +1,1845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fishcrimes system</title>
+<style>
+  :root {
+    color-scheme: light;
+    --ink: #1c1917;
+    --muted: #57534e;
+    --soft: #44403c;
+    --line: #d6d3d1;
+    --hair: #e7e5e4;
+    --paper: #fff;
+    --wash: #f6f4ef;
+    --warn: #9a3412;
+    --gap: 0.35rem;
+    --gap-x: 0.55rem;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font: 13px/1.3 system-ui, sans-serif;
+    margin: 0.6rem auto 1.25rem;
+    max-width: 72rem;
+    padding: 0 0.65rem;
+    color: var(--ink);
+    background: var(--wash);
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.55rem;
+    flex-wrap: wrap;
+  }
+  h1 { font-size: 0.82rem; font-weight: 600; margin: 0; letter-spacing: 0.01em; }
+  .hero {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.15rem 0.85rem;
+    align-items: baseline;
+    margin: 0.15rem 0 0.35rem;
+  }
+  .hero .figure { grid-row: 1 / span 3; }
+  .figure {
+    font-size: 1.85rem;
+    line-height: 1;
+    font-weight: 650;
+    margin: 0;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .sub { color: var(--muted); margin: 0.12rem 0 0; font-size: 0.78rem; }
+  .action { font-weight: 600; color: var(--ink); }
+  form.face, .bar, .checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gap) var(--gap-x);
+    align-items: end;
+    margin: 0.4rem 0;
+  }
+  form.face {
+    align-items: flex-start;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+    gap: 0.35rem 0.55rem;
+    margin: 0.35rem 0 0.45rem;
+  }
+  form.face label.grow { grid-column: span 2; min-width: 0; }
+  .checks { align-items: center; margin: 0.25rem 0 0; display: flex; }
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.08rem;
+    font-size: 0.68rem;
+    color: var(--soft);
+    min-width: 0;
+  }
+  .checks label { flex-direction: row; align-items: center; gap: 0.3rem; }
+  input, select, button { font: inherit; color: inherit; }
+  input, select {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 0.18rem 0.32rem;
+    font-size: 0.82rem;
+    width: 100%;
+    min-width: 0;
+  }
+  input[type="checkbox"] { width: auto; padding: 0; }
+  input:focus, select:focus { outline: 1.5px solid var(--ink); outline-offset: 1px; }
+  input.bad { border-color: var(--warn); }
+  input.out { color: var(--warn); }
+  button {
+    background: var(--ink);
+    color: #fafaf9;
+    border: 0;
+    padding: 0.22rem 0.5rem;
+    cursor: pointer;
+    font-size: 0.78rem;
+    white-space: nowrap;
+  }
+  button.ghost, button.link {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+  button.link { border: 0; padding: 0; font-weight: 600; text-decoration: underline; }
+  button:disabled { opacity: 0.4; cursor: default; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--paper);
+    font-size: 0.8rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.22rem 0.32rem;
+    border-bottom: 1px solid var(--hair);
+    vertical-align: middle;
+  }
+  th { font-size: 0.68rem; font-weight: 600; color: var(--muted); }
+  td.reason { color: var(--warn); font-size: 0.75rem; }
+  details { margin: 0.3rem 0 0.65rem; }
+  summary {
+    cursor: pointer;
+    font-size: 0.75rem;
+    color: var(--soft);
+    font-weight: 600;
+  }
+  #history > .sub {
+    font-size: 0.7rem;
+    line-height: 1.25;
+    max-width: 52rem;
+    margin: 0.25rem 0 0.35rem;
+  }
+  #history .bar { margin: 0.25rem 0 0.35rem; }
+  tr.more td { background: #fafaf9; }
+  .hide { visibility: hidden; }
+  .gone { display: none; }
+  .legs {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+  }
+  .legs.gone { display: none; }
+  .leg {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.45rem;
+    align-items: end;
+    margin: 0;
+  }
+  #leave { display: flex; align-items: center; gap: 0.3rem; margin: 0; font-size: 0.78rem; }
+  #leave[hidden] { display: none; }
+  #ledger.no-key .col-key, #ledger.no-sold .col-sold { display: none; }
+  form.face,
+  .step,
+  .step .face,
+  form.face label.grow {
+    overflow: visible;
+  }
+  form.face label.grow {
+    position: relative;
+  }
+  .suggest {
+    position: absolute;
+    left: 0;
+    right: auto;
+    top: calc(100% + 1px);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    width: max(100%, 16rem);
+    max-width: min(28rem, 92vw);
+    max-height: 12rem;
+    overflow: auto;
+    font-size: 0.78rem;
+    z-index: 60;
+    box-shadow: 0 6px 18px rgba(28, 25, 23, 0.14);
+  }
+  .suggest[hidden] { display: none; }
+  .suggest button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: var(--paper);
+    color: var(--ink);
+    border: 0;
+    border-bottom: 1px solid var(--hair);
+    padding: 0.28rem 0.45rem;
+    white-space: normal;
+    font-size: 0.8rem;
+  }
+  .suggest button:hover,
+  .suggest button:focus {
+    background: #f5f5f4;
+  }
+  .suggest .suggest-note {
+    display: block;
+    padding: 0.35rem 0.45rem;
+    color: var(--muted);
+    font-size: 0.72rem;
+    line-height: 1.25;
+  }
+  #add { margin-top: 0.15rem; }
+  #item > header .bar { margin: 0; }
+  #roster header { margin-bottom: 0.4rem; }
+  #roster table th:last-child, #roster table td:last-child { width: 1%; white-space: nowrap; }
+  @media (max-width: 40rem) {
+    .hero { grid-template-columns: 1fr; }
+    .hero .figure { grid-row: auto; font-size: 1.55rem; }
+    form.face label.grow { grid-column: span 1; }
+  }
+
+  .step {
+    margin: 0.55rem 0 0.7rem;
+    padding: 0.45rem 0.55rem 0.55rem;
+    border: 1px solid var(--hair);
+    background: #faf9f6;
+    border-radius: 2px;
+  }
+  .step-h {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0 0 0.2rem;
+    font-size: 0.78rem;
+    font-weight: 650;
+    color: var(--ink);
+  }
+  .step-n {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.15rem;
+    height: 1.15rem;
+    border-radius: 999px;
+    background: var(--ink);
+    color: #fafaf9;
+    font-size: 0.68rem;
+    font-weight: 700;
+    flex: 0 0 auto;
+  }
+  .step > .sub { margin: 0 0 0.35rem; max-width: 54rem; }
+  .step .face { margin: 0.25rem 0 0; }
+  .day-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.55rem;
+    align-items: end;
+    margin: 0.3rem 0;
+  }
+  .day-picks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin: 0.25rem 0 0;
+  }
+  .day-picks button {
+    font-variant-numeric: tabular-nums;
+  }
+  .day-picks button.picked {
+    background: var(--ink);
+    color: #fafaf9;
+    border-color: var(--ink);
+  }
+  .col-help {
+    display: block;
+    font-size: 0.62rem;
+    font-weight: 500;
+    color: var(--muted);
+    margin-top: 0.05rem;
+  }
+  th .col-help { font-weight: 500; }
+  .sheet-wrap { overflow-x: auto; margin-top: 0.25rem; }
+  #history { margin: 0.35rem 0 0.45rem; }
+  #history[open] summary { margin-bottom: 0.2rem; }
+  #ledger { margin-top: 0.35rem; }
+  .ledger-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.35rem;
+    margin: 0.45rem 0 0.2rem;
+  }
+  .ledger-head h3 {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 650;
+  }
+</style>
+</head>
+<body>
+<section id="roster">
+  <header>
+    <h1>Fishcrimes system</h1>
+    <div class="bar">
+      <button type="button" class="ghost" id="sample">Sample</button>
+      <button type="button" id="new">New</button>
+    </div>
+  </header>
+  <form id="roster-search" class="face">
+    <label class="grow">Name <input id="q-name" autocomplete="off"></label>
+    <label class="grow">Effect <input id="q-effect" autocomplete="off"></label>
+    <label>Quality
+      <select id="q-quality">
+        <option value="6">Unique</option>
+        <option value="3">Vintage</option>
+        <option value="11">Strange</option>
+        <option value="5">Unusual</option>
+        <option value="13">Haunted</option>
+        <option value="14">Collector's</option>
+      </select>
+    </label>
+    <label>Strange <input id="q-strange" type="checkbox"></label>
+    <button type="submit" id="q-search">Search</button>
+  </form>
+  <p class="sub" id="search-note"></p>
+  <table>
+    <thead>
+      <tr><th>Name</th><th>Effect</th><th>Status</th><th>Range</th><th>Saved</th><th></th></tr>
+    </thead>
+    <tbody id="roster-body"></tbody>
+  </table>
+  <p class="sub" id="roster-empty" hidden>No items yet.</p>
+  <h2 class="step-h">Queue</h2>
+  <p class="sub">A search waits here until the script finishes. Finished searches are added to the list above. Stage 2 starts from a finished row.</p>
+  <table>
+    <thead>
+      <tr><th>Item</th><th>Stage</th><th>Status</th></tr>
+    </thead>
+    <tbody id="search-queue"></tbody>
+  </table>
+  <p class="sub" id="queue-empty">No searches waiting.</p>
+</section>
+
+<section id="item" hidden>
+<header>
+  <div class="bar">
+    <button type="button" class="ghost" id="back">Roster</button>
+    <p id="leave" hidden>Leave without saving?
+      <button type="button" class="ghost" id="leave-yes">Leave</button>
+      <button type="button" class="ghost" id="leave-no">Stay</button>
+    </p>
+    <h1 id="item-title">New item</h1>
+  </div>
+  <div class="bar">
+    <label>Slug <input id="slug" value="abstract" autocomplete="off"></label>
+    <button type="button" id="save" disabled>Save</button>
+  </div>
+</header>
+
+<div class="hero">
+<p class="figure" id="figure">…</p>
+<p class="sub" id="sub"></p>
+<p class="sub">Scan <span class="action" id="action"></span> <span id="flags"></span></p>
+</div>
+
+<section class="step" id="step-item" aria-labelledby="step-item-h">
+  <h2 class="step-h" id="step-item-h"><span class="step-n">1</span> Pick exact item</h2>
+  <p class="sub">Type a keyword, then pick from the dropdown. Name and effect use the local suggest lists. Search queues the script. It does not start while you type.</p>
+  <div class="bar">
+    <button type="button" id="item-search">Search</button>
+    <p class="sub" id="item-search-note"></p>
+  </div>
+  <form class="face" id="face">
+    <label>Hold <input id="hold" type="checkbox"></label>
+    <label class="grow">Name <input id="name" autocomplete="off" aria-autocomplete="list" aria-controls="name-suggest">
+      <ul id="name-suggest" class="suggest" hidden></ul>
+    </label>
+    <label class="grow">Effect <input id="effect" autocomplete="off" aria-autocomplete="list" aria-controls="effect-suggest">
+      <ul id="effect-suggest" class="suggest" hidden></ul>
+    </label>
+    <label>Quality
+      <select id="quality">
+        <option value="6">Unique</option>
+        <option value="3">Vintage</option>
+        <option value="11">Strange</option>
+        <option value="5">Unusual</option>
+        <option value="13">Haunted</option>
+        <option value="14">Collector's</option>
+      </select>
+    </label>
+  </form>
+</section>
+
+<section class="step" id="step-primary" aria-labelledby="step-primary-h">
+  <h2 class="step-h" id="step-primary-h"><span class="step-n">2</span> Primary search — find pricing days</h2>
+  <p class="sub">Paste the backpack.tf item page ID. Find pricing days pulls the owner sheet (research tab). The script dates owner changes that look like sales. No prices on that sheet.</p>
+  <div class="bar">
+    <label>Page ID <input id="page-id" inputmode="numeric" autocomplete="off" placeholder="item id" size="16"></label>
+    <button type="button" id="pull">Find pricing days</button>
+  </div>
+  <p class="sub" id="history-note"></p>
+</section>
+
+<section class="step" id="step-rows" aria-labelledby="step-rows-h">
+  <h2 class="step-h" id="step-rows-h"><span class="step-n">3</span> Validated trade dates</h2>
+  <p class="sub">Owner sheet = who held the item and when last-seen closed enough to date a trade. Trade ledger = rows you price (you still type the amount). Add trade puts a dated row into the ledger.</p>
+
+  <details id="history" open>
+    <summary>Owner sheet <span class="sub">(from primary search)</span></summary>
+    <p class="sub">Sale time is the buyer’s last-seen, and only when the previous owner’s last-seen is within 24 hours. A lone last-seen is a scan, not a sale.</p>
+    <div class="sheet-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>From<span class="col-help">seller</span></th>
+            <th>To<span class="col-help">buyer</span></th>
+            <th>Seller last-seen<span class="col-help">scan clock</span></th>
+            <th>Buyer last-seen<span class="col-help">sale clock</span></th>
+            <th>Gap<span class="col-help">between seens</span></th>
+            <th>Add to ledger</th>
+          </tr>
+        </thead>
+        <tbody id="history-body"></tbody>
+      </table>
+    </div>
+  </details>
+
+  <div class="ledger-head">
+    <div>
+      <h3>Trade ledger</h3>
+      <p class="sub">Your priced trades. Trade day should fall in the 90-day window before the pricing day (step 4).</p>
+    </div>
+    <button type="button" class="ghost" id="add">Add blank row</button>
+  </div>
+  <div class="sheet-wrap">
+    <table id="ledger">
+      <thead>
+        <tr>
+          <th>Trade day<span class="col-help">when it sold</span></th>
+          <th>Deal type<span class="col-help">pure / cash / …</span></th>
+          <th>Amount<span class="col-help">you enter</span></th>
+          <th class="col-key">Key price<span class="col-help">that day</span></th>
+          <th class="col-sold">Sold for<span class="col-help">keys / $</span></th>
+          <th>In window<span class="col-help">kept vs pricing day</span></th>
+          <th>Note / drop<span class="col-help">why skipped</span></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section>
+
+<section class="step" id="step-day" aria-labelledby="step-day-h">
+  <h2 class="step-h" id="step-day-h"><span class="step-n">4</span> Secondary search — select pricing day</h2>
+  <p class="sub">Filter the dated days from step 2, then pick one. That day is what the construct prices against (sales in the 90 days before it).</p>
+  <div class="day-bar">
+    <label>Filter days <input id="day-filter" type="search" inputmode="search" placeholder="YYYY or MM-DD" autocomplete="off" spellcheck="false"></label>
+    <label>Pricing day <input id="asof" type="text" inputmode="text" placeholder="YYYY-MM-DD" size="12" spellcheck="false" autocomplete="off" title="The day you are pricing. Sales count for 90 days before it."></label>
+    <label>Point
+      <select id="point">
+        <option value="median">Median</option>
+        <option value="range_ends">Range ends</option>
+      </select>
+    </label>
+  </div>
+  <div id="day-candidates" class="day-picks" aria-live="polite"></div>
+  <p class="sub" id="day-empty">No candidate days yet. Run Find pricing days in step 2.</p>
+  <p class="sub" id="window"></p>
+</section>
+
+<details id="more">
+  <summary>More</summary>
+  <form class="face" id="more-form">
+    <label>Released <input id="released" type="text" inputmode="text" placeholder="YYYY-MM-DD" size="12" spellcheck="false" autocomplete="off"></label>
+    <label>Unbox until <input id="unbox" type="text" inputmode="text" placeholder="YYYY-MM-DD" size="12" spellcheck="false" autocomplete="off"></label>
+    <label>Still dropping <input id="dropping" type="checkbox" checked></label>
+    <label>Strange unusual <input id="strange" type="checkbox"></label>
+    <label>Hat sale <input id="hat" type="checkbox"></label>
+    <label>Fee
+      <select id="fee">
+        <option value="buyer_paid">Buyer paid</option>
+        <option value="seller_net">Seller net</option>
+      </select>
+    </label>
+    <label id="fee-wrap">Seller fee <input id="seller-fee" inputmode="decimal" size="6"></label>
+    <label>Listing <input id="listing" inputmode="decimal" size="8"></label>
+    <label>Buy order <input id="buy" inputmode="decimal" size="8"></label>
+    <label>90-day volume <input id="volume" inputmode="decimal" size="8"></label>
+    <label>First existence <input id="first" type="text" inputmode="text" placeholder="YYYY-MM-DD" size="12" spellcheck="false" autocomplete="off"></label>
+  </form>
+</details>
+</section>
+
+<script>
+const KINDS = ['pure', 'cash', 'marketplace', 'chain', 'listing', 'bulk', 'scm'];
+const UNITS = ['keys', 'usd', 'ref'];
+const ROW_FLAGS = ['withdrawn', 'duped', 'unboxer', 'untraceable', 'outlier', 'botDump', 'downstreamScan'];
+const FLAG_LABEL = {
+  withdrawn: 'Withdrawn',
+  duped: 'Dupe',
+  unboxer: 'Unboxer',
+  untraceable: 'Untraceable',
+  outlier: 'Outlier',
+  botDump: 'Bot dump',
+  downstreamScan: 'Downstream scan',
+};
+
+let sheet = null;
+let saved = null;
+let loadedSlug = null;
+let rosterRows = [];
+let armDelete = null;
+
+const $ = (id) => document.getElementById(id);
+
+function show(n) {
+  if (n == null || !Number.isFinite(Number(n))) return '';
+  const rounded = Math.round(Number(n) * 10000) / 10000;
+  return String(rounded);
+}
+
+function dayOf(at) {
+  return parseDay(at);
+}
+
+function parseDay(raw) {
+  const text = String(raw || '').trim();
+  if (!text) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+    const ms = Date.parse(`${text}T00:00:00.000Z`);
+    if (!Number.isFinite(ms)) return '';
+    return new Date(ms).toISOString().slice(0, 10) === text ? text : '';
+  }
+  if (!/T|\d:\d{2}/.test(text)) return '';
+  const ms = Date.parse(text);
+  if (!Number.isFinite(ms)) return '';
+  return new Date(ms).toISOString().slice(0, 10);
+}
+
+function shiftDay(day, days) {
+  const ms = Date.parse(`${day}T00:00:00.000Z`);
+  if (!Number.isFinite(ms)) return '';
+  return new Date(ms + days * 86400000).toISOString().slice(0, 10);
+}
+
+function takeDay(input) {
+  const day = parseDay(input.value);
+  const bad = input.value.trim() !== '' && !day;
+  input.classList.toggle('bad', bad);
+  if (day) input.value = day;
+  return day;
+}
+
+function dayField() {
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.placeholder = 'YYYY-MM-DD';
+  input.spellcheck = false;
+  input.autocomplete = 'off';
+  input.size = 12;
+  input.title = 'Day written on the history line. YYYY-MM-DD, or paste the sale time. The UTC day counts.';
+  return input;
+}
+
+function paintWindow() {
+  const day = parseDay($('asof').value);
+  const start = day ? shiftDay(day, -90) : '';
+  if (!start) {
+    $('window').textContent = 'Pick a candidate day below, or type YYYY-MM-DD. Sales count for the 90 days before that pricing day.';
+    return;
+  }
+  if ($('strange').checked) {
+    $('window').textContent = `Strange unusual: a sale older than ${start} still counts against pricing day ${day}.`;
+    return;
+  }
+  $('window').textContent = `Window: sales from ${start} through ${day} (UTC days). Ledger trade days outside that range tint red.`;
+}
+
+function markDays() {
+  const pricing = parseDay($('asof').value);
+  const start = $('strange').checked ? '' : (pricing ? shiftDay(pricing, -90) : '');
+  for (const input of document.querySelectorAll('[data-f="at"]')) {
+    const day = parseDay(input.value);
+    input.classList.toggle('out', Boolean(start && day && day < start));
+  }
+}
+
+function unitOf(row) {
+  if (row.usd != null) return 'usd';
+  if (row.ref != null) return 'ref';
+  return 'keys';
+}
+
+function amountOf(row) {
+  const unit = unitOf(row);
+  const n = row[unit];
+  return n == null ? '' : String(n);
+}
+
+function paintTitle() {
+  const name = $('name').value.trim();
+  const effect = $('effect').value.trim();
+  const title = [name, effect].filter(Boolean).join(' · ') || 'New item';
+  $('item-title').textContent = title;
+  if (!$('item').hidden) document.title = title;
+}
+
+function paintHold() {
+  $('name').disabled = false;
+  $('effect').disabled = false;
+  $('quality').disabled = false;
+}
+
+function paintDirty() {
+  const slug = $('slug').value.trim();
+  const slugDirty = loadedSlug != null && slug !== loadedSlug;
+  $('save').disabled = JSON.stringify(sheet) === saved && !slugDirty;
+}
+
+function writeDay(key, id) {
+  const input = $(id);
+  const day = takeDay(input);
+  if (!day) {
+    if (!input.value.trim()) delete sheet[key];
+    return;
+  }
+  sheet[key] = `${day}T00:00:00.000Z`;
+}
+
+function writeNum(key, id) {
+  const raw = $(id).value.trim();
+  if (raw === '') {
+    delete sheet[key];
+    return;
+  }
+  const n = Number(raw);
+  if (Number.isFinite(n)) sheet[key] = n;
+}
+
+function writeFlag(key, id) {
+  if ($(id).checked) sheet[key] = true;
+  else delete sheet[key];
+}
+
+function syncFee() {
+  const net = $('fee').value === 'seller_net';
+  $('fee-wrap').classList.toggle('hide', !net);
+  if (net && $('seller-fee').value === '') $('seller-fee').value = '0.1';
+}
+
+function readFace() {
+  delete sheet._slug;
+  if ($('hold').checked) {
+    sheet.identity = null;
+  } else {
+    const prev = sheet.identity && typeof sheet.identity === 'object' ? sheet.identity : {};
+    sheet.identity = { ...prev, name: $('name').value, quality: Number($('quality').value) };
+    const effect = $('effect').value.trim();
+    if (effect) sheet.identity.effect = effect;
+    else delete sheet.identity.effect;
+  }
+  const day = takeDay($('asof'));
+  if (day) sheet.asOf = `${day}T00:00:00.000Z`;
+  paintWindow();
+  if ($('point').value === 'range_ends') sheet.aggregate = 'range_ends';
+  else if (sheet.aggregate === 'range_ends') delete sheet.aggregate;
+}
+
+function readMore() {
+  writeDay('releasedAt', 'released');
+  writeDay('unboxUntil', 'unbox');
+  writeDay('firstExistence', 'first');
+  if ($('dropping').checked) delete sheet.stillDropping;
+  else sheet.stillDropping = false;
+  writeFlag('strangeUnusual', 'strange');
+  writeFlag('hatSale', 'hat');
+  if ($('fee').value === 'seller_net') {
+    sheet.feeMode = 'seller_net';
+    const raw = $('seller-fee').value.trim();
+    const n = Number(raw);
+    sheet.sellerFee = raw !== '' && Number.isFinite(n) ? n : 0.1;
+  } else {
+    delete sheet.feeMode;
+    delete sheet.sellerFee;
+  }
+  writeNum('listingKeys', 'listing');
+  writeNum('buyOrders', 'buy');
+  writeNum('volume_90d', 'volume');
+}
+
+function putKey(book, unit, day, raw) {
+  if ((unit !== 'usd' && unit !== 'ref') || !day || raw === '' || !(Number(raw) > 0)) return;
+  book[unit === 'ref' ? 'ref' : 'usd'][day] = Number(raw);
+}
+
+function readRows() {
+  const keys = { usd: {}, ref: {} };
+  const prev = new Map((sheet.sales || []).map((row) => [row.id, row]));
+  const sales = [];
+  for (const tr of document.querySelectorAll('#ledger tbody tr[data-id]')) {
+    const id = tr.dataset.id;
+    const more = tr.nextElementSibling;
+    const old = { ...(prev.get(id) || {}) };
+    const kind = tr.querySelector('[data-f="kind"]').value;
+    const day = takeDay(tr.querySelector('[data-f="at"]'));
+    const unit = tr.querySelector('[data-f="unit"]').value;
+    const raw = tr.querySelector('[data-f="amount"]').value;
+    const next = { ...old, id, kind };
+    delete next.keys;
+    delete next.usd;
+    delete next.ref;
+    if (day) next.at = `${day}T00:00:00.000Z`;
+    else delete next.at;
+    delete next.legs;
+    delete next.minis;
+    if (kind === 'chain') {
+      next.legs = readLegs(tr, day, keys);
+    } else if (raw !== '' && Number.isFinite(Number(raw))) next[unit] = Number(raw);
+    if (kind === 'marketplace') next.transacted = tr.querySelector('[data-f="sold"]').checked;
+    else delete next.transacted;
+    if (kind !== 'chain') putKey(keys, unit, day, tr.querySelector('[data-f="key"]').value);
+    const note = more.querySelector('[data-f="note"]').value.trim();
+    if (note) next.note = note;
+    else delete next.note;
+    const owner = more.querySelector('[data-f="owner"]').value.trim();
+    if (owner) next.owner = owner;
+    else delete next.owner;
+    for (const flag of ROW_FLAGS) {
+      if (more.querySelector(`[data-f="${flag}"]`).checked) next[flag] = true;
+      else delete next[flag];
+    }
+    sales.push(next);
+  }
+  sheet.sales = sales;
+  if (Object.keys(keys.usd).length) sheet.keyOnDay = keys.usd;
+  else delete sheet.keyOnDay;
+  if (Object.keys(keys.ref).length) sheet.keyRefOnDay = keys.ref;
+  else delete sheet.keyRefOnDay;
+}
+
+function readLegs(more, rowDay, keys) {
+  const legs = [];
+  for (const legEl of more.querySelectorAll('[data-leg]')) {
+    const unit = legEl.querySelector('[data-f="unit"]').value;
+    const raw = legEl.querySelector('[data-f="amount"]').value;
+    const leg = {};
+    if (raw !== '' && Number.isFinite(Number(raw))) leg[unit] = Number(raw);
+    if (unit === 'usd' || unit === 'ref') {
+      const legDay = takeDay(legEl.querySelector('[data-f="at"]')) || rowDay;
+      if (legDay) leg.at = `${legDay}T00:00:00.000Z`;
+      putKey(keys, unit, legDay, legEl.querySelector('[data-f="key"]').value);
+    }
+    legs.push(leg);
+  }
+  return legs;
+}
+
+function complete(row) {
+  if (!row || !row.at || !row.kind) return false;
+  if (row.kind === 'chain') return Array.isArray(row.legs) && row.legs.length > 0;
+  return row.keys != null || row.usd != null || row.ref != null;
+}
+
+function pointLine(price) {
+  const bits = [];
+  if (price.median != null) bits.push(`median ${show(price.median)}`);
+  if (price.range_ends != null) bits.push(`range ends ${show(price.range_ends)}`);
+  if (price.rounded != null && price.rounded !== price.keys) bits.push(`rounded ${show(price.rounded)}`);
+  return bits.join(' · ');
+}
+
+function clearKept() {
+  for (const tr of document.querySelectorAll('#ledger tbody tr[data-id]')) {
+    tr.querySelector('[data-f="kept"]').textContent = '';
+    tr.querySelector('[data-f="reason"]').textContent = '';
+  }
+}
+
+function paintPrice(pack) {
+  const price = pack.price || {};
+  const scan = pack.scan || {};
+  const words = { no_identity: 'Hold', unbox_week: 'Unbox week', no_comps: 'No comps' };
+  if (!price.ok) {
+    $('figure').textContent = words[price.reason] || 'Hold';
+    $('sub').textContent = '';
+  } else if ((price.n_used || 0) <= 1) {
+    $('figure').textContent = show(price.keys);
+    const rest = pointLine(price);
+    $('sub').textContent = rest ? `One print · ${rest}` : 'One print';
+  } else if (price.range_only) {
+    $('figure').textContent = `${show(price.low)}–${show(price.high)}`;
+    $('sub').textContent = pointLine(price);
+  } else {
+    $('figure').textContent = show(price.keys);
+    const bits = [`${show(price.low)}–${show(price.high)}`];
+    const rest = pointLine(price);
+    $('sub').textContent = rest ? `${bits.join(' · ')} · ${rest}` : bits.join(' · ');
+  }
+  $('action').textContent = scan.action || '';
+  const flags = (scan.flags || []).map((flag) => flag.reason + (flag.ratio ? ` ${show(flag.ratio)}` : '')).join(', ');
+  $('flags').textContent = flags;
+  const used = new Map((price.used || []).map((row) => [row.id, row]));
+  const dropped = new Map((price.dropped || []).map((row) => [row.id, row]));
+  for (const tr of document.querySelectorAll('#ledger tbody tr[data-id]')) {
+    const hit = used.get(tr.dataset.id);
+    const drop = dropped.get(tr.dataset.id);
+    tr.querySelector('[data-f="kept"]').textContent = hit ? show(hit.keys) : '';
+    tr.querySelector('[data-f="reason"]').textContent = drop ? drop.reason : '';
+  }
+}
+
+function unusualIncomplete() {
+  if ($('hold').checked) return false;
+  if (Number($('quality').value) !== 5) return false;
+  return !$('name').value.trim() || !$('effect').value.trim();
+}
+
+async function price() {
+  if (!sheet) return;
+  readFace();
+  readRows();
+  readMore();
+  paintDirty();
+  markDays();
+  if (unusualIncomplete()) {
+    $('figure').textContent = 'Hold';
+    $('sub').textContent = '';
+    $('action').textContent = '';
+    $('flags').textContent = '';
+    clearKept();
+    return;
+  }
+  const body = { ...sheet, sales: (sheet.sales || []).filter(complete) };
+  const res = await fetch('/construct', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) return;
+  paintPrice(await res.json());
+}
+
+function fillFace() {
+  const id = sheet.identity;
+  const held = id == null;
+  $('hold').checked = held;
+  const named = id && typeof id === 'object' ? id : {};
+  $('name').value = named.name || '';
+  $('effect').value = named.effect || '';
+  $('quality').value = String(named.quality || 6);
+  $('asof').value = dayOf(sheet.asOf);
+  $('point').value = sheet.aggregate === 'range_ends' ? 'range_ends' : 'median';
+  paintHold();
+  paintWindow();
+  paintTitle();
+  paintDayCandidates();
+}
+
+function fillMore() {
+  $('released').value = dayOf(sheet.releasedAt);
+  $('unbox').value = dayOf(sheet.unboxUntil);
+  $('first').value = dayOf(sheet.firstExistence);
+  $('dropping').checked = sheet.stillDropping !== false;
+  $('strange').checked = sheet.strangeUnusual === true;
+  $('hat').checked = sheet.hatSale === true;
+  $('fee').value = sheet.feeMode === 'seller_net' ? 'seller_net' : 'buyer_paid';
+  $('seller-fee').value = sheet.sellerFee != null ? String(sheet.sellerFee) : '';
+  $('listing').value = sheet.listingKeys != null ? String(sheet.listingKeys) : '';
+  $('buy').value = sheet.buyOrders != null ? String(sheet.buyOrders) : '';
+  $('volume').value = sheet.volume_90d != null ? String(sheet.volume_90d) : '';
+  syncFee();
+}
+
+function keyStored(unit, day) {
+  if (!day) return '';
+  const map = unit === 'ref' ? sheet.keyRefOnDay : sheet.keyOnDay;
+  if (!map || map[day] == null) return '';
+  return String(map[day]);
+}
+
+function keyLabel(unit) {
+  return unit === 'ref' ? 'Key ref' : 'Key $';
+}
+
+function field(label, node) {
+  const wrap = document.createElement('label');
+  wrap.append(label, ' ', node);
+  return wrap;
+}
+
+function addRow(row) {
+  const tr = document.createElement('tr');
+  tr.dataset.id = row.id;
+  const date = document.createElement('td');
+  const at = dayField();
+  at.dataset.f = 'at';
+  at.value = dayOf(row.at);
+  date.append(at);
+
+  const kindCell = document.createElement('td');
+  const kind = document.createElement('select');
+  kind.dataset.f = 'kind';
+  for (const name of KINDS) {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    kind.append(opt);
+  }
+  kind.value = KINDS.includes(row.kind) ? row.kind : 'pure';
+  kindCell.append(kind);
+
+  const amountCell = document.createElement('td');
+  const amount = document.createElement('input');
+  amount.dataset.f = 'amount';
+  amount.inputMode = 'decimal';
+  amount.value = amountOf(row);
+  amount.size = 8;
+  const unit = document.createElement('select');
+  unit.dataset.f = 'unit';
+  for (const name of UNITS) {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    unit.append(opt);
+  }
+  unit.value = unitOf(row);
+  amountCell.append(amount, ' ', unit);
+
+  const keyCell = document.createElement('td');
+  keyCell.className = 'col-key';
+  const keyTag = document.createElement('span');
+  keyTag.dataset.f = 'key-tag';
+  keyTag.textContent = keyLabel(unitOf(row));
+  const key = document.createElement('input');
+  key.dataset.f = 'key';
+  key.inputMode = 'decimal';
+  key.size = 6;
+  const day = dayOf(row.at);
+  key.value = keyStored(unitOf(row), day);
+  keyCell.append(keyTag, ' ', key);
+
+  const soldCell = document.createElement('td');
+  soldCell.className = 'col-sold';
+  const sold = document.createElement('input');
+  sold.type = 'checkbox';
+  sold.dataset.f = 'sold';
+  sold.checked = row.transacted === true;
+  soldCell.append(sold);
+
+  const kept = document.createElement('td');
+  kept.dataset.f = 'kept';
+  const reason = document.createElement('td');
+  reason.dataset.f = 'reason';
+  reason.className = 'reason';
+
+  tr.append(date, kindCell, amountCell, keyCell, soldCell, kept, reason);
+
+  const extra = document.createElement('tr');
+  extra.className = 'more';
+  extra.dataset.for = row.id;
+  const cell = document.createElement('td');
+  cell.colSpan = 7;
+  const details = document.createElement('details');
+  const summary = document.createElement('summary');
+  summary.textContent = 'More';
+  const box = document.createElement('div');
+  box.className = 'face';
+  const note = document.createElement('input');
+  note.dataset.f = 'note';
+  note.value = row.note || '';
+  note.autocomplete = 'off';
+  const owner = document.createElement('input');
+  owner.dataset.f = 'owner';
+  owner.value = row.owner || '';
+  owner.autocomplete = 'off';
+  box.append(field('Note', note), field('Owner', owner));
+  const checks = document.createElement('div');
+  checks.className = 'checks';
+  for (const flag of ROW_FLAGS) {
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.dataset.f = flag;
+    input.checked = row[flag] === true;
+    checks.append(field(FLAG_LABEL[flag], input));
+  }
+  const legs = document.createElement('div');
+  legs.className = 'legs';
+  legs.dataset.legs = '';
+  const list = document.createElement('div');
+  list.dataset.legList = '';
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.className = 'ghost';
+  add.dataset.addLeg = '';
+  add.textContent = 'Add leg';
+  for (const leg of row.legs || row.minis || []) addLeg(list, leg);
+  legs.append(list, add);
+  amountCell.append(legs);
+  details.append(summary, box, checks);
+  cell.append(details);
+  extra.append(cell);
+
+  document.querySelector('#ledger tbody').append(tr, extra);
+  syncRow(tr);
+}
+
+function syncLeg(legEl, opts = {}) {
+  const unit = legEl.querySelector('[data-f="unit"]').value;
+  const cash = unit === 'usd' || unit === 'ref';
+  legEl.querySelector('[data-f="at"]').closest('label').classList.toggle('gone', !cash);
+  const keyLabelEl = legEl.querySelector('[data-f="key"]').closest('label');
+  keyLabelEl.classList.toggle('gone', !cash);
+  if (keyLabelEl.firstChild) keyLabelEl.firstChild.textContent = keyLabel(unit);
+  if (opts.loadKey && opts.target && legEl.contains(opts.target)) {
+    const day = legEl.querySelector('[data-f="at"]').value;
+    legEl.querySelector('[data-f="key"]').value = keyStored(unit, day);
+  }
+}
+
+function addLeg(list, leg = {}) {
+  const row = document.createElement('div');
+  row.className = 'leg';
+  row.dataset.leg = '';
+  const amount = document.createElement('input');
+  amount.dataset.f = 'amount';
+  amount.inputMode = 'decimal';
+  amount.size = 8;
+  const unitName = leg.usd != null ? 'usd' : leg.ref != null ? 'ref' : 'keys';
+  amount.value = leg[unitName] != null ? String(leg[unitName]) : '';
+  const unit = document.createElement('select');
+  unit.dataset.f = 'unit';
+  for (const name of UNITS) {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    unit.append(opt);
+  }
+  unit.value = unitName;
+  const at = dayField();
+  at.dataset.f = 'at';
+  at.value = dayOf(leg.at);
+  const key = document.createElement('input');
+  key.dataset.f = 'key';
+  key.inputMode = 'decimal';
+  key.size = 6;
+  const day = dayOf(leg.at);
+  key.value = keyStored(unitName, day);
+  const remove = document.createElement('button');
+  remove.type = 'button';
+  remove.className = 'ghost';
+  remove.dataset.removeLeg = '';
+  remove.textContent = 'Remove';
+  row.append(field('Amount', amount), field('Unit', unit), field('Date', at), field(keyLabel(unitName), key), remove);
+  list.append(row);
+  syncLeg(row);
+}
+
+function syncRow(tr, opts = {}) {
+  const kind = tr.querySelector('[data-f="kind"]').value;
+  const unit = tr.querySelector('[data-f="unit"]').value;
+  const chain = kind === 'chain';
+  const showKey = !chain && (unit === 'usd' || unit === 'ref');
+  tr.querySelector('[data-f="amount"]').classList.toggle('gone', chain);
+  tr.querySelector('[data-f="unit"]').classList.toggle('gone', chain);
+  tr.querySelector('[data-f="key"]').classList.toggle('hide', !showKey);
+  const tag = tr.querySelector('[data-f="key-tag"]');
+  if (tag) {
+    tag.textContent = keyLabel(unit);
+    tag.classList.toggle('hide', !showKey);
+  }
+  if (opts.loadKey && opts.target && tr.contains(opts.target) && !opts.target.closest('[data-leg]')) {
+    tr.querySelector('[data-f="key"]').value = keyStored(unit, tr.querySelector('[data-f="at"]').value);
+  }
+  tr.querySelector('[data-f="sold"]').classList.toggle('hide', kind !== 'marketplace');
+  const legs = tr.querySelector('[data-legs]');
+  if (legs) legs.classList.toggle('gone', !chain);
+  for (const legEl of tr.querySelectorAll('[data-leg]')) syncLeg(legEl, opts);
+  fitColumns();
+}
+
+function fitColumns() {
+  const rows = [...document.querySelectorAll('#ledger tbody tr[data-id]')];
+  const showKey = rows.some((row) => !row.querySelector('[data-f="key"]').classList.contains('hide'));
+  const showSold = rows.some((row) => !row.querySelector('[data-f="sold"]').classList.contains('hide'));
+  const ledger = $('ledger');
+  ledger.classList.toggle('no-key', !showKey);
+  ledger.classList.toggle('no-sold', !showSold);
+  const span = 5 + (showKey ? 1 : 0) + (showSold ? 1 : 0);
+  for (const cell of ledger.querySelectorAll('tr.more > td')) cell.colSpan = span;
+}
+
+function render() {
+  fillFace();
+  fillMore();
+  const body = document.querySelector('#ledger tbody');
+  body.replaceChildren();
+  for (const row of sheet.sales || []) addRow(row);
+  paintDirty();
+}
+
+function nextId() {
+  let n = 0;
+  for (const row of sheet.sales || []) {
+    const m = /^r-(\d+)$/.exec(row.id || '');
+    if (m) n = Math.max(n, Number(m[1]));
+  }
+  return `r-${n + 1}`;
+}
+
+function groupId(node) {
+  if (!node || !node.closest) return null;
+  const tr = node.closest('tr');
+  if (!tr || !tr.closest('#ledger')) return null;
+  return tr.dataset.id || tr.dataset.for || null;
+}
+
+function showItem() {
+  $('roster').hidden = true;
+  $('item').hidden = false;
+  $('leave').hidden = true;
+}
+
+async function showRoster() {
+  $('item').hidden = true;
+  $('roster').hidden = false;
+  $('leave').hidden = true;
+  document.title = 'Fishcrimes system';
+  history.replaceState(null, '', '/');
+  const res = await fetch('/items');
+  const body = res.ok ? await res.json() : { items: [] };
+  rosterRows = body.items || [];
+  drawRoster();
+  await loadQueue();
+}
+
+let queueTimer = 0;
+
+function searchError(reason) {
+  if (reason === 'need_name') return 'Type the item name.';
+  if (reason === 'need_effect') return 'An unusual needs an effect.';
+  if (reason === 'need_quality') return 'Pick a quality.';
+  if (reason === 'unknown_effect') return 'That effect is not in the particle list.';
+  if (reason === 'no_history_pull') return 'This copy does not run search scripts.';
+  if (reason === 'not_found' || reason === 'no_sheet') return 'No sheet for that item.';
+  if (reason === 'no_original_id') return 'No matches for that name on the stats book.';
+  if (reason === 'no_hops') return 'That sheet has no owner rows.';
+  if (reason === 'no_dated') return 'No dated owner changes to compare.';
+  if (reason === 'research_chrome') return 'Could not reach the research Chrome on the house machine.';
+  if (reason === 'cf_wall') return 'The research tab hit a check. Open that item there and try again.';
+  if (reason === 'search_failed') return 'Search failed.';
+  return reason || 'Search failed.';
+}
+
+function drawQueue(jobs) {
+  const body = $('search-queue');
+  body.replaceChildren();
+  const rows = jobs || [];
+  $('queue-empty').hidden = rows.length > 0;
+  for (const job of rows) {
+    const tr = document.createElement('tr');
+    const item = document.createElement('td');
+    item.textContent = [job.name, job.effect].filter(Boolean).join(' · ') || job.slug || job.id;
+    const stage = document.createElement('td');
+    stage.textContent = job.stage === 2 ? 'Stage 2' : 'Stage 1';
+    const status = document.createElement('td');
+    status.textContent = job.reason ? `${job.status} · ${searchError(job.reason)}` : job.status;
+    tr.append(item, stage, status);
+    body.append(tr);
+  }
+}
+
+async function loadQueue() {
+  clearTimeout(queueTimer);
+  let jobs = [];
+  try {
+    const res = await fetch('/searches');
+    const body = res.ok ? await res.json() : { jobs: [] };
+    jobs = body.jobs || [];
+  } catch {
+    jobs = [];
+  }
+  drawQueue(jobs);
+  const live = jobs.some((job) => job.status === 'queued' || job.status === 'running');
+  if (live && !$('roster').hidden) queueTimer = setTimeout(() => { showRoster(); }, 1500);
+}
+
+async function postSearch(spec, note) {
+  const res = await fetch('/searches', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(spec),
+  });
+  let body = {};
+  try { body = await res.json(); } catch { /* keep */ }
+  if (!res.ok || body.ok === false) {
+    note.textContent = searchError(body.error || body.reason);
+    return false;
+  }
+  note.textContent = 'Queued. It sits at the bottom of the roster until it finishes.';
+  return true;
+}
+
+async function enqueueStage2(slug) {
+  const note = $('search-note');
+  const ok = await postSearch({ stage: 2, slug }, note);
+  if (ok) await loadQueue();
+}
+
+function rosterName(row) {
+  if (row.held) return 'Held';
+  return row.name || '—';
+}
+
+function rosterStatus(row) {
+  if (row.error) return searchError(row.error);
+  if (!row.reason) return row.status || '';
+  const friendly = searchError(row.reason);
+  return row.status ? `${row.status} · ${friendly}` : friendly;
+}
+
+function rosterRange(row) {
+  if (row.low == null || row.high == null) return '—';
+  return `${show(row.low)}–${show(row.high)}`;
+}
+
+function drawRoster() {
+  const body = $('roster-body');
+  body.replaceChildren();
+  $('roster-empty').hidden = rosterRows.length > 0;
+  for (const row of rosterRows) {
+    const tr = document.createElement('tr');
+    const name = document.createElement('td');
+    if (!row.error) {
+      const open = document.createElement('button');
+      open.type = 'button';
+      open.className = 'link';
+      open.textContent = rosterName(row);
+      open.addEventListener('click', () => openSlug(row.slug));
+      name.append(open);
+    } else {
+      name.textContent = row.slug;
+    }
+    const effect = document.createElement('td');
+    effect.textContent = row.effect || '';
+    const status = document.createElement('td');
+    status.textContent = rosterStatus(row);
+    const range = document.createElement('td');
+    range.textContent = rosterRange(row);
+    const when = document.createElement('td');
+    const at = row.saved ? new Date(row.saved) : null;
+    when.textContent = at && !Number.isNaN(at.getTime()) ? at.toLocaleString() : '';
+    const act = document.createElement('td');
+    if (armDelete === row.slug) {
+      const yes = document.createElement('button');
+      yes.type = 'button';
+      yes.textContent = 'Delete';
+      yes.addEventListener('click', () => removeSlug(row.slug));
+      const no = document.createElement('button');
+      no.type = 'button';
+      no.className = 'ghost';
+      no.textContent = 'Keep';
+      no.addEventListener('click', () => {
+        armDelete = null;
+        drawRoster();
+      });
+      act.append(yes, ' ', no);
+    } else if (!row.error) {
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'ghost';
+      del.textContent = 'Delete';
+      del.addEventListener('click', () => {
+        armDelete = row.slug;
+        drawRoster();
+      });
+      if (row.dated > 0 && !row.stage2) {
+        const stage = document.createElement('button');
+        stage.type = 'button';
+        stage.className = 'ghost';
+        stage.textContent = 'Stage 2';
+        stage.addEventListener('click', () => enqueueStage2(row.slug));
+        act.append(stage, ' ');
+      }
+      act.append(del);
+    }
+    tr.append(name, effect, status, range, when, act);
+    body.append(tr);
+  }
+}
+
+function clockText(iso) {
+  if (!iso) return '';
+  return `${iso.slice(0, 10)} ${iso.slice(11, 16)} UTC`;
+}
+
+function gapText(hours) {
+  if (!Number.isFinite(Number(hours))) return '';
+  const n = Number(hours);
+  if (n < 48) return `${Math.round(n * 10) / 10} h`;
+  return `${Math.round(n / 24)} d`;
+}
+
+function historyNote(reason) {
+  if (reason === 'bad_page') return 'Page ID is the number in backpack.tf/item/…';
+  if (reason === 'cf_wall') return 'The research tab hit a check. Open that item there and pull again.';
+  if (reason === 'no_hops') return 'That sheet has no owner rows.';
+  if (reason === 'busy') return 'A pull is already running.';
+  if (reason === 'no_history_pull') return 'This copy does not pull the owner sheet.';
+  if (reason === 'research_chrome') return 'Could not reach the research Chrome on the house machine.';
+  return reason || 'Pull failed.';
+}
+
+
+let pulledMoves = [];
+
+function uniquePricingDays(moves) {
+  const out = [];
+  const seen = new Set();
+  for (const move of moves || []) {
+    if (!move || !move.at) continue;
+    const day = String(move.at).slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || seen.has(day)) continue;
+    seen.add(day);
+    out.push({ day, kind: move.kind || '', shop: move.kind === 'shop' });
+  }
+  return out;
+}
+
+function paintDayCandidates() {
+  const box = $('day-candidates');
+  const empty = $('day-empty');
+  if (!box || !empty) return;
+  box.replaceChildren();
+  const q = String($('day-filter')?.value || '').trim().toLowerCase();
+  const days = uniquePricingDays(pulledMoves).filter((row) => !q || row.day.toLowerCase().includes(q) || (row.shop && 'shop'.includes(q)));
+  const selected = parseDay($('asof').value);
+  for (const row of days) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ghost';
+    btn.dataset.day = row.day;
+    btn.textContent = row.shop ? `${row.day} · shop` : row.day;
+    if (selected && selected === row.day) btn.classList.add('picked');
+    btn.addEventListener('click', () => setPricingDay(row.day));
+    box.append(btn);
+  }
+  empty.hidden = days.length > 0;
+  if (!pulledMoves.length) {
+    empty.hidden = false;
+    empty.textContent = 'No candidate days yet. Run Find pricing days in step 2.';
+  } else if (!days.length) {
+    empty.hidden = false;
+    empty.textContent = 'No days match that filter.';
+  }
+}
+
+function setPricingDay(day) {
+  const next = parseDay(day) || String(day || '').slice(0, 10);
+  if (!next) return;
+  $('asof').value = next;
+  takeDay($('asof'));
+  paintWindow();
+  markDays();
+  paintDayCandidates();
+  paintDirty();
+  price();
+}
+
+function drawMoves(moves) {
+  const body = $('history-body');
+  body.replaceChildren();
+  const list = moves || [];
+  pulledMoves = list;
+  paintDayCandidates();
+  const ordered = [...list.filter((move) => move.at), ...list.filter((move) => !move.at)];
+  for (const move of ordered) {
+    const tr = document.createElement('tr');
+    for (const text of [move.seller || '', move.buyer || '', clockText(move.sellerAt), clockText(move.buyerAt), gapText(move.hours)]) {
+      const td = document.createElement('td');
+      td.textContent = text;
+      tr.append(td);
+    }
+    const act = document.createElement('td');
+    const use = document.createElement('button');
+    use.type = 'button';
+    use.className = 'ghost';
+    if (move.at) {
+      const day = move.at.slice(0, 10);
+      use.textContent = move.kind === 'shop' ? `Add trade ${day} · shop` : `Add trade ${day}`;
+      use.title = 'Add a ledger row on this trade day. Pick the pricing day in step 4.';
+      use.addEventListener('click', () => useMove(move));
+    } else {
+      use.disabled = true;
+      use.textContent = move.reason === 'rescan' ? 'Same owner' : 'Too wide';
+    }
+    act.append(use);
+    tr.append(act);
+    body.append(tr);
+  }
+}
+
+function useMove(move) {
+  if (!move?.at) return;
+  readFace();
+  readRows();
+  readMore();
+  const row = { id: nextId(), kind: 'pure', at: move.at };
+  const who = [move.seller, move.buyer].filter(Boolean).join(' → ');
+  if (who) row.note = who;
+  sheet.sales.push(row);
+  render();
+  price();
+}
+
+async function openItem(data, slug, snapshot) {
+  sheet = data;
+  loadedSlug = snapshot == null ? null : slug;
+  saved = snapshot;
+  $('slug').value = slug;
+  const pageID = data?.identity && typeof data.identity === 'object' ? data.identity.pageID : '';
+  $('page-id').value = pageID ? String(pageID) : '';
+  $('history-note').textContent = '';
+  drawMoves([]);
+  showItem();
+  render();
+  await price();
+}
+
+async function openSlug(slug) {
+  const res = await fetch(`/items/${slug}`);
+  if (!res.ok) {
+    await showRoster();
+    return;
+  }
+  const data = await res.json();
+  history.replaceState(null, '', `/?slug=${slug}`);
+  await openItem(data, slug, JSON.stringify(data));
+}
+
+async function openSample() {
+  const data = await (await fetch('/sample.sales.json')).json();
+  history.replaceState(null, '', '/?sample=1');
+  await openItem(data, 'abstract', null);
+}
+
+function freshSlug() {
+  const taken = new Set(rosterRows.map((row) => row.slug));
+  if (!taken.has('item')) return 'item';
+  let n = 2;
+  while (taken.has(`item-${n}`)) n += 1;
+  return `item-${n}`;
+}
+
+async function createItem() {
+  const slug = freshSlug();
+  const day = new Date().toISOString().slice(0, 10);
+  const blank = { identity: null, sales: [], asOf: `${day}T00:00:00.000Z` };
+  const put = await fetch(`/items/${slug}`, {
+    method: 'PUT',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(blank),
+  });
+  if (!put.ok) return;
+  await openSlug(slug);
+}
+
+async function removeSlug(slug) {
+  const res = await fetch(`/items/${slug}`, { method: 'DELETE' });
+  armDelete = null;
+  if (!res.ok) return;
+  await showRoster();
+}
+
+async function goRoster() {
+  sheet = null;
+  await showRoster();
+}
+
+async function boot() {
+  const params = new URLSearchParams(location.search);
+  const wanted = params.get('slug');
+  if (wanted && /^[a-z0-9-]+$/.test(wanted)) {
+    await openSlug(wanted);
+    return;
+  }
+  if (params.get('sample') === '1') {
+    await openSample();
+    return;
+  }
+  await showRoster();
+}
+
+$('face').addEventListener('change', async () => {
+  paintHold();
+  await price();
+});
+function hitLabel(hit) {
+  if (hit.name && hit.effect) return `${hit.name} · ${hit.effect}`;
+  return hit.name || hit.effect || '';
+}
+
+function applyHit(hit) {
+  if (hit.name) $('name').value = hit.name;
+  if (hit.effect) {
+    $('effect').value = hit.effect;
+    $('quality').value = '5';
+  }
+  $('hold').checked = false;
+  paintHold();
+  paintTitle();
+  hideSuggest();
+  price();
+}
+
+function hideSuggest() {
+  for (const id of ['name-suggest', 'effect-suggest']) {
+    const list = $(id);
+    list.replaceChildren();
+    list.hidden = true;
+  }
+}
+
+function showSuggestNote(list, message) {
+  list.replaceChildren();
+  list.hidden = false;
+  const li = document.createElement('li');
+  const note = document.createElement('span');
+  note.className = 'suggest-note';
+  note.textContent = message;
+  li.append(note);
+  list.append(li);
+}
+
+function drawSuggest(list, hits) {
+  list.replaceChildren();
+  list.hidden = hits.length === 0;
+  for (const hit of hits) {
+    const li = document.createElement('li');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = hitLabel(hit);
+    button.addEventListener('mousedown', (event) => {
+      event.preventDefault();
+      applyHit(hit);
+    });
+    li.append(button);
+    list.append(li);
+  }
+}
+
+function fold(raw) {
+  return String(raw || '').toLowerCase().replace(/[-']/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function acceptExact(field, hits, typed) {
+  const top = hits[0];
+  if (!top || fold($(field).value) !== fold(typed)) return;
+  const typedFold = fold(typed);
+  if (field === 'effect') {
+    if (top.effect && fold(top.effect) === typedFold) {
+      $('effect').value = top.effect;
+      $('quality').value = '5';
+      $('hold').checked = false;
+      paintTitle();
+    }
+    return;
+  }
+  if (top.name && top.effect && typedFold.endsWith(fold(top.effect))) {
+    const nameQ = typedFold.slice(0, typedFold.length - fold(top.effect).length).trim();
+    if (nameQ && fold(top.name) === nameQ) {
+      $('name').value = top.name;
+      $('effect').value = top.effect;
+      $('quality').value = '5';
+      $('hold').checked = false;
+      paintTitle();
+      hideSuggest();
+    }
+    return;
+  }
+  if (top.name && !top.effect && fold(top.name) === typedFold) {
+    $('name').value = top.name;
+    paintTitle();
+  }
+}
+
+let suggestTimer = 0;
+function queueSuggest(field) {
+  clearTimeout(suggestTimer);
+  suggestTimer = setTimeout(async () => {
+    const input = $(field);
+    const list = $(`${field}-suggest`);
+    const q = input.value.trim();
+    if (!q) {
+      list.replaceChildren();
+      list.hidden = true;
+      return;
+    }
+    try {
+      const res = await fetch(`/names?q=${encodeURIComponent(q)}&field=${encodeURIComponent(field)}`);
+      if (fold(input.value) !== fold(q)) return;
+      if (!res.ok) {
+        showSuggestNote(list, `Name lookup failed (${res.status}).`);
+        return;
+      }
+      let body;
+      try {
+        body = await res.json();
+      } catch {
+        showSuggestNote(list, 'Name lookup returned bad JSON.');
+        return;
+      }
+      if (fold(input.value) !== fold(q)) return;
+      if (body.missing) {
+        showSuggestNote(list, 'Catalogue missing on this server — no names to suggest.');
+        return;
+      }
+      if (body.error === 'not_found' || body.error === 'no_sheet') {
+        showSuggestNote(list, 'No matches.');
+        return;
+      }
+      const hits = body.hits || [];
+      if (!hits.length) {
+        showSuggestNote(list, 'No matches.');
+        return;
+      }
+      drawSuggest(list, hits);
+      acceptExact(field, hits, q);
+    } catch {
+      if (fold($(field).value) !== fold(q)) return;
+      showSuggestNote(list, 'Name lookup failed — network or server error.');
+    }
+  }, 40);
+}
+
+function noteIdentity() {
+  if (($('name').value.trim() || $('effect').value.trim()) && $('hold').checked) {
+    $('hold').checked = false;
+  }
+}
+
+$('face').addEventListener('submit', (event) => event.preventDefault());
+$('more-form').addEventListener('submit', (event) => event.preventDefault());
+function onTyped(field) {
+  noteIdentity();
+  paintTitle();
+  queueSuggest(field);
+}
+function typedKey(event) {
+  if (event.ctrlKey || event.metaKey || event.altKey) return false;
+  return event.key.length === 1 || event.key === 'Backspace' || event.key === 'Delete';
+}
+$('name').addEventListener('input', () => onTyped('name'));
+$('effect').addEventListener('input', () => onTyped('effect'));
+$('name').addEventListener('keyup', (event) => { if (typedKey(event)) onTyped('name'); });
+$('effect').addEventListener('keyup', (event) => { if (typedKey(event)) onTyped('effect'); });
+$('name').addEventListener('keydown', (event) => pickSuggest(event, 'name'));
+$('effect').addEventListener('keydown', (event) => pickSuggest(event, 'effect'));
+for (const id of ['name', 'effect']) {
+  $(id).addEventListener('blur', () => setTimeout(hideSuggest, 150));
+}
+
+function pickSuggest(event, field) {
+  const list = $(`${field}-suggest`);
+  if (list.hidden) return;
+  if (event.key === 'Escape') {
+    hideSuggest();
+    return;
+  }
+  if (event.key !== 'Enter') return;
+  const button = list.querySelector('button');
+  if (!button) return;
+  event.preventDefault();
+  button.dispatchEvent(new MouseEvent('mousedown'));
+}
+$('face').addEventListener('focusout', (event) => {
+  if ($('face').contains(event.relatedTarget)) return;
+  price();
+});
+
+$('more').addEventListener('change', () => {
+  syncFee();
+  price();
+});
+$('more').addEventListener('focusout', (event) => {
+  if ($('more').contains(event.relatedTarget)) return;
+  price();
+});
+
+document.querySelector('#ledger tbody').addEventListener('click', (event) => {
+  const addBtn = event.target.closest('[data-add-leg]');
+  if (addBtn) {
+    addLeg(addBtn.parentElement.querySelector('[data-leg-list]'), {});
+    price();
+    return;
+  }
+  const removeBtn = event.target.closest('[data-remove-leg]');
+  if (!removeBtn) return;
+  removeBtn.closest('[data-leg]').remove();
+  price();
+});
+document.querySelector('#ledger tbody').addEventListener('change', (event) => {
+  const tr = event.target.closest('tr');
+  if (!tr) return;
+  const main = tr.dataset.id ? tr : tr.previousElementSibling;
+  if (main && main.dataset.id) syncRow(main, { loadKey: event.target.matches('[data-f="unit"]'), target: event.target });
+  if (event.target.matches('select, input[type="checkbox"]')) price();
+});
+document.querySelector('#ledger tbody').addEventListener('focusout', (event) => {
+  const here = groupId(event.target);
+  const there = groupId(event.relatedTarget);
+  if (!here || here === there) return;
+  price();
+});
+
+$('roster-search').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const ok = await postSearch({
+    name: $('q-name').value,
+    effect: $('q-effect').value,
+    quality: Number($('q-quality').value),
+    strange: $('q-strange').checked,
+  }, $('search-note'));
+  if (ok) await loadQueue();
+});
+
+$('item-search').addEventListener('click', async () => {
+  readFace();
+  const ok = await postSearch({
+    name: $('name').value,
+    effect: $('effect').value,
+    quality: Number($('quality').value),
+    strange: $('strange').checked,
+  }, $('item-search-note'));
+  if (ok && $('save').disabled) goRoster();
+});
+
+$('pull').addEventListener('click', async () => {
+  const pageID = $('page-id').value.trim();
+  $('pull').disabled = true;
+  $('history-note').textContent = 'Finding pricing days from the owner sheet…';
+  try {
+    const res = await fetch('/history', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ pageID }),
+    });
+    const body = await res.json();
+    if (!body.ok) {
+      drawMoves([]);
+      $('history-note').textContent = historyNote(body.reason || body.error);
+      return;
+    }
+    drawMoves(body.moves || []);
+    const dated = (body.moves || []).filter((move) => move.at).length;
+    $('history-note').textContent = dated
+      ? `${dated} dated trade day${dated === 1 ? '' : 's'} ready. Add trades in step 3; pick the pricing day in step 4.`
+      : 'Owner changes are here. None are close enough to date a sale.';
+    const hist = $('history');
+    if (hist) hist.open = true;
+    $('step-day')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  } catch {
+    $('history-note').textContent = 'Pull failed.';
+  } finally {
+    $('pull').disabled = false;
+  }
+});
+
+$('day-filter').addEventListener('input', () => paintDayCandidates());
+$('asof').addEventListener('change', () => {
+  takeDay($('asof'));
+  paintWindow();
+  markDays();
+  paintDayCandidates();
+  paintDirty();
+  price();
+});
+$('asof').addEventListener('focusout', () => {
+  takeDay($('asof'));
+  paintWindow();
+  markDays();
+  paintDayCandidates();
+});
+$('point').addEventListener('change', async () => {
+  readFace();
+  readRows();
+  readMore();
+  paintDirty();
+  await price();
+});
+
+$('add').addEventListener('click', () => {
+  readFace();
+  readRows();
+  readMore();
+  const row = { id: nextId(), kind: 'pure' };
+  sheet.sales.push(row);
+  addRow(row);
+  paintDirty();
+});
+
+$('slug').addEventListener('input', paintDirty);
+
+$('save').addEventListener('click', async () => {
+  readFace();
+  readRows();
+  readMore();
+  const slug = $('slug').value.trim();
+  if (!/^[a-z0-9-]+$/.test(slug)) return;
+  const body = { ...sheet };
+  const res = await fetch(`/items/${slug}`, {
+    method: 'PUT',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) return;
+  if (loadedSlug && loadedSlug !== slug) {
+    const dropped = await fetch(`/items/${loadedSlug}`, { method: 'DELETE' });
+    if (!dropped.ok && dropped.status !== 404) return;
+  }
+  const got = await fetch(`/items/${slug}`);
+  if (!got.ok) return;
+  sheet = await got.json();
+  loadedSlug = slug;
+  saved = JSON.stringify(sheet);
+  render();
+  paintDirty();
+  history.replaceState(null, '', `/?slug=${slug}`);
+  await price();
+});
+
+$('back').addEventListener('click', () => {
+  if (!$('save').disabled) {
+    $('leave').hidden = false;
+    return;
+  }
+  goRoster();
+});
+$('leave-yes').addEventListener('click', () => goRoster());
+$('leave-no').addEventListener('click', () => { $('leave').hidden = true; });
+$('new').addEventListener('click', () => createItem());
+$('sample').addEventListener('click', () => openSample());
+
+boot();
+</script>
+</body>
+</html>

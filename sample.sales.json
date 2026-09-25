@@ -1,0 +1,10 @@
+{
+  "asOf": "2026-03-01T00:00:00.000Z",
+  "identity": { "name": "abstract", "quality": 6 },
+  "keyOnDay": { "2026-01-15": 1.9, "2026-02-01": 2 },
+  "sales": [
+    { "id": "pure-a", "at": "2026-01-15T00:00:00.000Z", "kind": "pure", "keys": 3.54 },
+    { "id": "cash-b", "at": "2026-02-01T00:00:00.000Z", "kind": "cash", "usd": 8 },
+    { "id": "listing", "at": "2026-02-01T00:00:00.000Z", "kind": "marketplace", "usd": 20, "transacted": false }
+  ]
+}
